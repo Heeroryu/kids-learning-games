@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Spell It! 🌟</title>
+<style>
+  :root{
+    --pink:#ff6b9d; --yellow:#ffd23f; --blue:#4ecdc4; --purple:#a06cd5;
+    --green:#3ddc84; --orange:#ff924c; --ink:#2d2a4a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%; margin:0;}
+  body{
+    font-family:"Comic Sans MS","Baloo 2",Verdana,system-ui,sans-serif;
+    background:linear-gradient(135deg,#ffe0ec 0%,#e0f7ff 50%,#fff5d6 100%);
+    color:var(--ink);
+    overflow:hidden;
+    user-select:none;
+    display:flex; flex-direction:column;
+    height:100vh;
+  }
+  /* Top bar */
+  #bar{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 14px;
+    flex:0 0 auto;
+  }
+  .iconbtn{
+    border:none; cursor:pointer;
+    font-size:26px; line-height:1;
+    background:#ffffffaa; border-radius:16px;
+    padding:8px 12px;
+    box-shadow:0 3px 0 #00000018;
+    transition:transform .08s;
+  }
+  .iconbtn:active{transform:translateY(2px); box-shadow:0 1px 0 #00000018;}
+  #progress{
+    flex:1; height:18px; background:#ffffff88; border-radius:99px; overflow:hidden;
+    box-shadow:inset 0 2px 4px #0000001a;
+  }
+  #progressFill{height:100%; width:0%; background:linear-gradient(90deg,var(--green),var(--blue)); transition:width .4s;}
+  #letterTag{font-weight:bold; font-size:20px; min-width:2.2em; text-align:center;}
+
+  /* Stage */
+  #stage{flex:1; position:relative; display:flex; align-items:center; justify-content:center; padding:10px;}
+  .screen{position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:16px; text-align:center;}
+  .screen.on{display:flex; animation:pop .4s ease;}
+  @keyframes pop{from{transform:scale(.9); opacity:0;} to{transform:scale(1); opacity:1;}}
+
+  h1{font-size:clamp(40px,9vw,90px); margin:0; color:var(--purple); text-shadow:3px 3px 0 #fff;}
+  .sub{font-size:clamp(18px,4vw,28px); margin:0;}
+
+  .bigbtn{
+    border:none; cursor:pointer; color:#fff; font-weight:bold;
+    font-size:clamp(24px,5vw,34px);
+    padding:18px 40px; border-radius:30px;
+    background:var(--pink); box-shadow:0 6px 0 #c94b78;
+    transition:transform .08s;
+  }
+  .bigbtn:active{transform:translateY(4px); box-shadow:0 2px 0 #c94b78;}
+  .bigbtn.go{background:var(--green); box-shadow:0 6px 0 #2bb56a;}
+
+  /* Letter recognition */
+  .megaLetter{
+    font-size:min(46vh,46vw); font-weight:900; line-height:1;
+    color:var(--blue); text-shadow:6px 6px 0 #fff, 10px 10px 0 #0000000d;
+  }
+  .megaLetter.shake{animation:shake .35s;}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-14px)rotate(-3deg)}40%{transform:translateX(14px)rotate(3deg)}60%{transform:translateX(-10px)}80%{transform:translateX(10px)}}
+
+  /* Spelling */
+  .emoji{font-size:min(34vh,40vw); line-height:1; filter:drop-shadow(0 8px 10px #0003);}
+  .emoji.bounce{animation:bounce 1s ease infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+  .tiles{display:flex; gap:clamp(6px,1.5vw,14px); flex-wrap:wrap; justify-content:center;}
+  .tile{
+    width:clamp(46px,12vw,90px); height:clamp(58px,15vw,110px);
+    border-radius:16px; background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-size:clamp(30px,8vw,64px); font-weight:900; color:#cfcfe6;
+    box-shadow:0 5px 0 #00000015; transition:transform .1s, background .15s, color .15s;
+  }
+  .tile.done{color:var(--green); background:#eafff3; transform:scale(1.04);}
+  .tile.next{
+    color:var(--orange); background:#fff7e6;
+    animation:glow 1s ease-in-out infinite; outline:4px dashed var(--orange);
+  }
+  .tile.justhit{animation:hit .3s;}
+  @keyframes hit{0%{transform:scale(1.35);}100%{transform:scale(1.04);}}
+  @keyframes glow{0%,100%{box-shadow:0 0 0 0 #ff924c66, 0 5px 0 #00000015;}50%{box-shadow:0 0 0 12px #ff924c00, 0 5px 0 #00000015;}}
+
+  /* Confetti */
+  #confetti{position:absolute; inset:0; pointer-events:none; overflow:hidden;}
+  .conf{position:absolute; top:-40px; font-size:28px; animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg); opacity:.9;}}
+
+  /* Letter picker (parents) */
+  #picker{display:grid; grid-template-columns:repeat(6,1fr); gap:clamp(7px,1.6vw,12px); width:100%; max-width:440px; margin:0 auto;}
+  .pk{
+    aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+    font-size:clamp(20px,5.2vw,30px); font-weight:900; border:none; border-radius:18px;
+    background:linear-gradient(160deg,#ffffff,#f1ebff); color:var(--purple); cursor:pointer;
+    box-shadow:0 5px 0 #d9ccef, 0 8px 12px #0000001a; transition:transform .1s, box-shadow .1s;
+  }
+  .pk:hover{transform:translateY(-3px); box-shadow:0 8px 0 #d9ccef, 0 12px 16px #00000022;}
+  .pk:active{transform:translateY(2px); box-shadow:0 2px 0 #d9ccef;}
+  .hint{font-size:15px; opacity:.7; max-width:560px;}
+  .vrow{display:flex; align-items:center; gap:8px; font-size:18px; flex-wrap:wrap; justify-content:center;}
+  #voiceSel{font-family:inherit; font-size:16px; padding:8px 10px; border-radius:12px; border:2px solid #fff; background:#fff; color:var(--ink); max-width:240px; box-shadow:0 3px 0 #00000012;}
+  .praise{font-size:clamp(28px,7vw,56px); font-weight:900; color:var(--pink); text-shadow:2px 2px 0 #fff;}
+</style>
+</head>
+<body>
+  <div id="bar">
+    <button class="iconbtn" id="homeBtn" title="Home (menu)">🏠</button>
+    <button class="iconbtn" id="backBtn" title="Back">⬅️</button>
+    <button class="iconbtn" id="muteBtn" title="Sound on/off">🔊</button>
+    <div id="progress"><div id="progressFill"></div></div>
+    <div id="letterTag">⭐</div>
+    <button class="iconbtn" id="repeatBtn" title="Say it again">🔁</button>
+  </div>
+
+  <div id="stage">
+    <div id="confetti"></div>
+
+    <!-- START / MENU -->
+    <section class="screen on" id="scStart">
+      <h1>Spell It! 🌟</h1>
+      <p class="sub">Let's learn letters and words!</p>
+      <button class="bigbtn go" id="startBtn">▶ Play</button>
+      <p class="sub" style="margin-top:6px;">Pick a letter to start:</p>
+      <div id="picker"></div>
+      <div class="vrow">🗣️ <select id="voiceSel"></select>
+        <button class="iconbtn" id="testVoice">🔊 Test</button></div>
+      <p class="hint">🗣️ <b>For the most natural, friendly voice, open this in Microsoft Edge</b> — it has free lifelike voices (marked ✨ in the list). Pick one above and tap Test to hear it.<br>
+      Grown-up tip: the right letter <b>glows orange</b> — your child just presses that key. Wrong keys do nothing, so she can't get it wrong. Tap 🔁 to hear it again.</p>
+    </section>
+
+    <!-- LETTER RECOGNITION -->
+    <section class="screen" id="scLetter">
+      <p class="sub" id="letterAsk">What letter is this?</p>
+      <div class="megaLetter" id="megaLetter">A</div>
+      <p class="sub" id="letterPrompt">Press the <b>A</b> key! 👇</p>
+    </section>
+
+    <!-- SPELLING -->
+    <section class="screen" id="scSpell">
+      <div class="emoji bounce" id="wordEmoji">🍎</div>
+      <p class="sub" id="spellAsk">Can you spell <b>Apple</b>?</p>
+      <div class="tiles" id="tiles"></div>
+    </section>
+
+    <!-- CELEBRATE -->
+    <section class="screen" id="scWin">
+      <div class="emoji" id="winEmoji">🍎</div>
+      <p class="praise" id="winWord">APPLE!</p>
+      <p class="sub" id="winMsg">🎉 You did it! 🎉</p>
+      <button class="bigbtn go" id="nextBtn">Next ➡️</button>
+    </section>
+
+    <!-- FINALE -->
+    <section class="screen" id="scDone">
+      <h1>🏆 Yay! 🏆</h1>
+      <p class="sub">You spelled words all the way from A to Z!</p>
+      <button class="bigbtn go" id="againBtn">Play again 🔁</button>
+    </section>
+  </div>
+
+<script>
+/* ---------- Curriculum (short, picture-able words) ---------- */
+const DATA = [
+  ["A",[["ANT","🐜"],["APPLE","🍎"],["AXE","🪓"],["ARM","💪"],["APE","🦍"]]],
+  ["B",[["BEE","🐝"],["BALL","⚽"],["BUS","🚌"],["BEAR","🐻"],["BAT","🦇"]]],
+  ["C",[["CAT","🐱"],["CAR","🚗"],["COW","🐄"],["CAKE","🍰"],["CUP","☕"]]],
+  ["D",[["DOG","🐶"],["DUCK","🦆"],["DOLL","🪆"],["DRUM","🥁"],["DEER","🦌"]]],
+  ["E",[["EGG","🥚"],["EAR","👂"],["EYE","👁️"],["ELF","🧝"],["EEL","🐍"]]],
+  ["F",[["FISH","🐟"],["FOX","🦊"],["FROG","🐸"],["FAN","🪭"],["FIRE","🔥"]]],
+  ["G",[["GOAT","🐐"],["GIFT","🎁"],["GEM","💎"],["GRAPES","🍇"],["GHOST","👻"]]],
+  ["H",[["HAT","🎩"],["HAND","✋"],["HEART","❤️"],["HORSE","🐴"],["HOUSE","🏠"]]],
+  ["I",[["ICE","🧊"],["IGLOO","🛖"]]],
+  ["J",[["JET","✈️"],["JAM","🍓"],["JUICE","🧃"]]],
+  ["K",[["KEY","🔑"],["KITE","🪁"],["KING","🤴"],["KOALA","🐨"]]],
+  ["L",[["LION","🦁"],["LEAF","🍃"],["LAMP","💡"],["LEMON","🍋"],["LOG","🪵"]]],
+  ["M",[["MOON","🌙"],["MAP","🗺️"],["MILK","🥛"],["MOUSE","🐭"],["MASK","🎭"]]],
+  ["N",[["NET","🥅"],["NUT","🥜"],["NOSE","👃"],["NEST","🪺"]]],
+  ["O",[["OWL","🦉"],["ORANGE","🍊"],["ONION","🧅"],["OCTOPUS","🐙"]]],
+  ["P",[["PIG","🐷"],["PEN","🖊️"],["PIZZA","🍕"],["PANDA","🐼"],["PEAR","🍐"]]],
+  ["Q",[["QUEEN","👑"],["QUILT","🧵"]]],
+  ["R",[["RAT","🐀"],["RING","💍"],["ROSE","🌹"],["ROCKET","🚀"],["RABBIT","🐰"]]],
+  ["S",[["SUN","☀️"],["STAR","⭐"],["SOCK","🧦"],["SNAKE","🐍"],["SHIP","🚢"]]],
+  ["T",[["TREE","🌳"],["TRAIN","🚂"],["TIGER","🐯"],["TURTLE","🐢"],["TENT","⛺"]]],
+  ["U",[["UMBRELLA","☂️"],["UNICORN","🦄"]]],
+  ["V",[["VAN","🚐"],["VIOLIN","🎻"]]],
+  ["W",[["WEB","🕸️"],["WOLF","🐺"],["WORM","🪱"],["WHALE","🐳"]]],
+  ["X",[["XYLOPHONE","🎶"]]],
+  ["Y",[["YOYO","🪀"],["YARN","🧶"]]],
+  ["Z",[["ZEBRA","🦓"],["ZOO","🦁"],["ZIP","🤐"]]],
+];
+
+/* ---------- State ---------- */
+const TOTAL_WORDS = DATA.reduce((n,[,w])=>n+w.length,0);
+let li=0, wi=0, typed=0, screen="start", muted=false;
+let backStack=[], content=null;
+function pushForward(){ if(content) backStack.push({...content}); }
+function setContent(type){ content={type, li, wi}; }
+function back(){
+  try{speechSynthesis.cancel();}catch(e){}
+  if(screen==="win"){ goSpell(); return; }                 // back to the word you just did
+  if(screen==="letter"||screen==="spell"){
+    if(backStack.length){ const p=backStack.pop(); content=p; li=p.li; wi=p.wi; (p.type==="letter")?goLetter():goSpell(); }
+    else window.location.href="index.html";
+    return;
+  }
+  window.location.href="index.html";                       // start/done -> menu
+}
+
+/* ---------- Sound (browser voice) ---------- */
+let voice=null, allVoices=[];
+function scoreVoice(v){
+  const n=(v.name||'').toLowerCase(), l=(v.lang||'').toLowerCase();
+  if(!l.startsWith('en')) return -1;
+  let s = /^en-(us|gb|au|ca)/.test(l) ? 5 : 2;
+  if(/natural|neural/.test(n)) s+=60;   // Edge "(Natural)" voices — best & free
+  if(/online/.test(n))         s+=25;
+  if(/google/.test(n))         s+=35;   // Chrome's bundled voices — quite good
+  if(/aria|jenny|jane|sonia|libby|michelle|ava|emma|clara|samantha|karen|tessa|moira|hazel|zira|female/.test(n)) s+=10;
+  if(/david|mark|george|james|guy|ravi|\bmale\b/.test(n)) s-=4;  // usual robotic defaults
+  return s;
+}
+function loadVoice(){
+  const vs=speechSynthesis.getVoices(); if(!vs.length) return;
+  allVoices = vs.filter(v=>/^en/i.test(v.lang)).sort((a,b)=>scoreVoice(b)-scoreVoice(a));
+  const saved=localStorage.getItem('spellit_voice');
+  voice = (saved && allVoices.find(v=>v.voiceURI===saved)) || allVoices[0] || vs[0] || null;
+  buildVoiceMenu();
+}
+if('speechSynthesis' in window){ loadVoice(); speechSynthesis.onvoiceschanged=loadVoice; }
+function buildVoiceMenu(){
+  const sel=document.getElementById('voiceSel'); if(!sel||!allVoices.length) return;
+  sel.innerHTML='';
+  allVoices.forEach((v,i)=>{
+    const o=document.createElement('option'); o.value=v.voiceURI;
+    const nm=v.name.split(' - ')[0].replace(/microsoft/i,'').trim();
+    o.textContent=(i===0?'⭐ ':'')+nm+(/natural|neural/i.test(v.name)?' ✨':'');
+    if(voice&&v.voiceURI===voice.voiceURI) o.selected=true;
+    sel.appendChild(o);
+  });
+}
+function say(text,{rate=0.95,pitch=1.2,then=null}={}){
+  if(muted || !('speechSynthesis' in window)){ if(then) setTimeout(then,250); return; }
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  if(voice) u.voice=voice;
+  u.rate=rate; u.pitch=pitch; u.volume=1;
+  if(then){ let done=false; const go=()=>{ if(done)return; done=true; then(); };
+            u.onend=go; setTimeout(go, Math.max(1600, text.length*95)); }   // fallback if engine skips onend
+  speechSynthesis.speak(u);
+}
+const cheer=(t)=>say(t,{rate:1.0,pitch:1.45});   // brighter, more excited tone for praise
+const LETTERNAME={A:"A",B:"Bee",C:"See",E:"Ee",G:"Gee",H:"Aitch",I:"Eye",J:"Jay",K:"Kay",O:"Oh",P:"Pee",Q:"Cue",R:"Are",U:"You",W:"Double You",Y:"Why"};
+const sayLetter=(ch)=>say(LETTERNAME[ch]||ch,{rate:0.8,pitch:1.2});
+
+/* ---------- DOM ---------- */
+const $=id=>document.getElementById(id);
+const screens={start:$("scStart"),letter:$("scLetter"),spell:$("scSpell"),win:$("scWin"),done:$("scDone")};
+function show(name){
+  screen=name;
+  Object.entries(screens).forEach(([k,el])=>el.classList.toggle("on",k===name));
+}
+function updateProgress(){
+  let done=0; for(let i=0;i<li;i++) done+=DATA[i][1].length; done+=wi;
+  $("progressFill").style.width=(100*done/TOTAL_WORDS)+"%";
+  $("letterTag").textContent=DATA[li]?DATA[li][0]:"⭐";
+}
+
+/* ---------- Flow ---------- */
+function saveSpot(){ try{localStorage.setItem("spellit",li+","+wi);}catch(e){} }
+function loadSpot(){ try{const s=localStorage.getItem("spellit");if(s){const[a,b]=s.split(",").map(Number);if(DATA[a]){li=a;wi=Math.min(b,DATA[a][1].length-1);}}}catch(e){} }
+
+function goLetter(){
+  show("letter"); updateProgress();
+  const ch=DATA[li][0];
+  $("megaLetter").textContent=ch;
+  $("letterPrompt").innerHTML=`Press the <b>${ch}</b> key! 👇`;
+  $("letterAsk").textContent="What letter is this?";
+  say(`What letter is this? Can you press ${LETTERNAME[ch]||ch}?`);
+}
+
+function goSpell(){
+  show("spell"); updateProgress(); typed=0;
+  const [word,emoji]=DATA[li][1][wi];
+  $("wordEmoji").textContent=emoji;
+  $("spellAsk").innerHTML=`Can you spell <b>${cap(word)}</b>?`;
+  const t=$("tiles"); t.innerHTML="";
+  [...word].forEach((c,i)=>{
+    const d=document.createElement("div");
+    d.className="tile"+(i===0?" next":"");
+    d.textContent=c; d.dataset.ch=c;
+    t.appendChild(d);
+  });
+  saveSpot();
+  say(`Can you spell ${word.toLowerCase()}?`,{then:()=>{ if(screen==="spell") spellOutHint(word); }});
+}
+function spellOutHint(word){ /* gently read the letters once */
+  if(muted||screen!=="spell") return;
+  let i=0; const next=()=>{ if(i<word.length&&screen==="spell"){ sayLetter(word[i]); i++; setTimeout(next,650);} };
+  next();
+}
+
+function goWin(){
+  const [word,emoji]=DATA[li][1][wi];
+  $("winEmoji").textContent=emoji;
+  $("winWord").textContent=word+"!";
+  $("winMsg").textContent=pick(["🎉 You did it! 🎉","⭐ Amazing! ⭐","🌈 Super star! 🌈","👏 Well done! 👏"]);
+  show("win"); confetti();
+  cheer(`Yes! You spelled ${word.toLowerCase()}! ${pick(["Woohoo!","Amazing job!","You are so smart!","Hip hip hooray!","You're a superstar!"])}`);
+}
+
+function advance(){
+  pushForward();                                  // remember the word just finished
+  wi++;
+  if(wi>=DATA[li][1].length){ wi=0; li++;
+    if(li>=DATA.length){ show("done"); updateProgress(); $("progressFill").style.width="100%"; say("Wow! You spelled words all the way from A to Z! Hooray!"); return; }
+    saveSpot(); goLetter(); setContent("letter");
+  } else { goSpell(); setContent("spell"); }
+}
+
+/* ---------- Input ---------- */
+document.addEventListener("keydown",e=>{
+  const k=e.key;
+  if(k===" "||k==="Enter"){ // friendly "continue" on win screen
+    if(screen==="win"){ e.preventDefault(); advance(); }
+    return;
+  }
+  if(!/^[a-zA-Z]$/.test(k)) return;
+  const key=k.toUpperCase();
+  if(screen==="letter"){
+    if(key===DATA[li][0]){ sayLetter(key); flashGood($("megaLetter")); setTimeout(()=>{ pushForward(); goSpell(); setContent("spell"); },500); }
+    else { shake($("megaLetter")); }
+  } else if(screen==="spell"){
+    const word=DATA[li][1][wi][0];
+    const tiles=$("tiles").children;
+    if(key===word[typed]){
+      const tile=tiles[typed];
+      tile.classList.remove("next"); tile.classList.add("done","justhit");
+      sayLetter(key);
+      typed++;
+      if(typed<word.length){ tiles[typed].classList.add("next"); }
+      else { setTimeout(goWin,450); }
+    } else {
+      if(tiles[typed]) shake(tiles[typed]);
+    }
+  }
+});
+
+/* ---------- Helpers ---------- */
+function cap(w){return w[0]+w.slice(1).toLowerCase();}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function shake(el){el.classList.add("shake");setTimeout(()=>el.classList.remove("shake"),360);}
+function flashGood(el){el.style.color="var(--green)";setTimeout(()=>el.style.color="",500);}
+function confetti(){
+  const box=$("confetti"); const set=["🎉","⭐","🌟","🎈","💖","🌈","✨","🍭"];
+  for(let i=0;i<28;i++){
+    const s=document.createElement("div"); s.className="conf"; s.textContent=pick(set);
+    s.style.left=Math.random()*100+"%";
+    s.style.animationDuration=(1.6+Math.random()*1.6)+"s";
+    s.style.animationDelay=(Math.random()*.5)+"s";
+    s.style.fontSize=(20+Math.random()*26)+"px";
+    box.appendChild(s); setTimeout(()=>s.remove(),3500);
+  }
+}
+
+/* ---------- Buttons ---------- */
+$("startBtn").onclick=()=>{ loadSpot(); backStack=[]; content=null; goLetter(); setContent("letter"); };
+$("nextBtn").onclick=advance;
+$("againBtn").onclick=()=>{ li=0;wi=0; saveSpot(); backStack=[]; content=null; goLetter(); setContent("letter"); };
+$("homeBtn").onclick=()=>{ try{speechSynthesis.cancel();}catch(e){} window.location.href="index.html"; };
+$("backBtn").onclick=back;
+$("repeatBtn").onclick=()=>{
+  if(screen==="letter") say(`What letter is this? Can you press ${LETTERNAME[DATA[li][0]]||DATA[li][0]}?`);
+  else if(screen==="spell") say(`Can you spell ${DATA[li][1][wi][0].toLowerCase()}?`,{then:()=>spellOutHint(DATA[li][1][wi][0])});
+  else if(screen==="win") say(`You spelled ${DATA[li][1][wi][0].toLowerCase()}!`);
+};
+$("muteBtn").onclick=()=>{ muted=!muted; if(muted)speechSynthesis.cancel(); $("muteBtn").textContent=muted?"🔇":"🔊"; };
+$("voiceSel").onchange=e=>{ const v=allVoices.find(x=>x.voiceURI===e.target.value); if(v){ voice=v; try{localStorage.setItem("spellit_voice",v.voiceURI);}catch(err){} cheer("Hi! I'm ready to play!"); } };
+$("testVoice").onclick=()=>cheer("Woohoo! Let's spell some words! You can do it!");
+
+/* Build letter picker */
+const pk=$("picker");
+DATA.forEach((d,i)=>{ const b=document.createElement("button"); b.className="pk"; b.textContent=d[0];
+  b.onclick=()=>{ li=i; wi=0; backStack=[]; content=null; goLetter(); setContent("letter"); }; pk.appendChild(b); });
+
+updateProgress();
+</script>
+</body>
+</html>

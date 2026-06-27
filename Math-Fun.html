@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Math Fun! 🔢</title>
+<style>
+  :root{
+    --pink:#ff6b9d; --yellow:#ffd23f; --blue:#4ecdc4; --purple:#a06cd5;
+    --green:#3ddc84; --orange:#ff924c; --ink:#2d2a4a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%; margin:0;}
+  body{
+    font-family:"Comic Sans MS","Baloo 2",Verdana,system-ui,sans-serif;
+    background:linear-gradient(135deg,#e7e0ff 0%,#e0f7ff 50%,#fff0d6 100%);
+    color:var(--ink);
+    overflow:hidden; user-select:none;
+    display:flex; flex-direction:column; height:100vh;
+  }
+  #bar{display:flex; align-items:center; gap:10px; padding:10px 14px; flex:0 0 auto;}
+  .iconbtn{
+    border:none; cursor:pointer; font-size:26px; line-height:1;
+    background:#ffffffaa; border-radius:16px; padding:8px 12px;
+    box-shadow:0 3px 0 #00000018; transition:transform .08s;
+  }
+  .iconbtn:active{transform:translateY(2px); box-shadow:0 1px 0 #00000018;}
+  #progress{flex:1; height:18px; background:#ffffff88; border-radius:99px; overflow:hidden; box-shadow:inset 0 2px 4px #0000001a;}
+  #progressFill{height:100%; width:0%; background:linear-gradient(90deg,var(--green),var(--blue)); transition:width .4s;}
+  #countTag{font-weight:bold; font-size:20px; min-width:2.6em; text-align:center;}
+
+  #stage{flex:1; position:relative; display:flex; align-items:center; justify-content:center; padding:10px;}
+  .screen{position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:16px; text-align:center;}
+  .screen.on{display:flex; animation:pop .4s ease;}
+  @keyframes pop{from{transform:scale(.9); opacity:0;} to{transform:scale(1); opacity:1;}}
+
+  h1{font-size:clamp(40px,9vw,84px); margin:0; color:var(--purple); text-shadow:3px 3px 0 #fff;}
+  .sub{font-size:clamp(18px,4vw,28px); margin:0;}
+  .badge{font-size:clamp(16px,3.4vw,22px); font-weight:bold; color:var(--orange);}
+
+  .bigbtn{border:none; cursor:pointer; color:#fff; font-weight:bold; font-size:clamp(22px,5vw,32px);
+    padding:18px 36px; border-radius:30px; background:var(--pink); box-shadow:0 6px 0 #c94b78; transition:transform .08s;}
+  .bigbtn:active{transform:translateY(4px); box-shadow:0 2px 0 #c94b78;}
+  .bigbtn.go{background:var(--green); box-shadow:0 6px 0 #2bb56a;}
+
+  /* number picker (parents) */
+  #picker{display:grid; grid-template-columns:repeat(5,1fr); gap:clamp(8px,2vw,14px); width:100%; max-width:380px; margin:0 auto;}
+  .pk{
+    aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+    font-size:clamp(22px,6vw,34px); font-weight:900; border:none; border-radius:18px;
+    background:linear-gradient(160deg,#ffffff,#f1ebff); color:var(--purple); cursor:pointer;
+    box-shadow:0 5px 0 #d9ccef, 0 8px 12px #0000001a; transition:transform .1s, box-shadow .1s;
+  }
+  .pk:hover{transform:translateY(-3px); box-shadow:0 8px 0 #d9ccef, 0 12px 16px #00000022;}
+  .pk:active{transform:translateY(2px); box-shadow:0 2px 0 #d9ccef;}
+
+  /* question / lesson screen */
+  #qDigit{font-size:min(38vh,38vw); font-weight:900; line-height:1; color:var(--blue); text-shadow:6px 6px 0 #fff, 10px 10px 0 #0000000d;}
+  #objs{display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:clamp(6px,2.2vw,18px); max-width:92vw;}
+  .obj{font-size:clamp(32px,8.5vw,68px); line-height:1; filter:drop-shadow(0 6px 7px #0003); transition:transform .15s;}
+  .obj.counted{transform:scale(1.25); filter:drop-shadow(0 0 10px var(--orange));}
+  .plus{font-size:clamp(38px,9vw,78px); font-weight:900; color:var(--pink); margin:0 6px;}
+
+  /* number row */
+  #numrow{display:flex; flex-wrap:wrap; gap:clamp(5px,1.4vw,12px); justify-content:center; max-width:96vw;}
+  .num{
+    width:clamp(48px,11vw,82px); height:clamp(56px,13vw,94px);
+    border-radius:16px; background:#fff; border:none; cursor:pointer;
+    font-family:inherit; font-size:clamp(26px,7vw,50px); font-weight:900; color:var(--purple);
+    box-shadow:0 5px 0 #00000015; transition:transform .1s, background .15s, color .15s;
+  }
+  .num:active{transform:translateY(3px); box-shadow:0 1px 0 #00000015;}
+  .num.glow{color:var(--orange); background:#fff7e6; outline:4px dashed var(--orange); animation:glow 1s ease-in-out infinite;}
+  .num.good{color:var(--green); background:#eafff3;}
+  .num.shake{animation:shake .35s;}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)rotate(-3deg)}40%{transform:translateX(12px)rotate(3deg)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}
+  @keyframes glow{0%,100%{box-shadow:0 0 0 0 #ff924c66, 0 5px 0 #00000015;}50%{box-shadow:0 0 0 12px #ff924c00, 0 5px 0 #00000015;}}
+
+  /* letter tiles (spell the number word) */
+  #tiles{display:flex; gap:clamp(6px,1.5vw,14px); flex-wrap:wrap; justify-content:center;}
+  .tile{width:clamp(46px,12vw,88px); height:clamp(58px,15vw,108px); border-radius:16px; background:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:clamp(30px,8vw,62px); font-weight:900;
+    color:#cfcfe6; box-shadow:0 5px 0 #00000015; transition:transform .1s, background .15s, color .15s;}
+  .tile.done{color:var(--green); background:#eafff3; transform:scale(1.04);}
+  .tile.next{color:var(--orange); background:#fff7e6; outline:4px dashed var(--orange); animation:glow 1s ease-in-out infinite;}
+  .tile.justhit{animation:hit .3s;}
+  @keyframes hit{0%{transform:scale(1.35);}100%{transform:scale(1.04);}}
+
+  #confetti{position:absolute; inset:0; pointer-events:none; overflow:hidden;}
+  .conf{position:absolute; top:-40px; font-size:28px; animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg); opacity:.9;}}
+
+  .bigemoji{font-size:min(28vh,36vw); line-height:1; filter:drop-shadow(0 8px 10px #0003);}
+  .praise{font-size:clamp(28px,7vw,56px); font-weight:900; color:var(--pink); text-shadow:2px 2px 0 #fff;}
+  .hint{font-size:15px; opacity:.7; max-width:560px;}
+  .vrow{display:flex; align-items:center; gap:8px; font-size:18px; flex-wrap:wrap; justify-content:center;}
+  #voiceSel{font-family:inherit; font-size:16px; padding:8px 10px; border-radius:12px; border:2px solid #fff; background:#fff; color:var(--ink); max-width:240px; box-shadow:0 3px 0 #00000012;}
+</style>
+</head>
+<body>
+  <div id="bar">
+    <button class="iconbtn" id="homeBtn" title="Home (menu)">🏠</button>
+    <button class="iconbtn" id="backBtn" title="Back">⬅️</button>
+    <button class="iconbtn" id="muteBtn" title="Sound on/off">🔊</button>
+    <div id="progress"><div id="progressFill"></div></div>
+    <div id="countTag">🔢</div>
+    <button class="iconbtn" id="repeatBtn" title="Say it again">🔁</button>
+  </div>
+
+  <div id="stage">
+    <div id="confetti"></div>
+
+    <!-- START -->
+    <section class="screen on" id="scStart">
+      <h1>Math Fun! 🔢</h1>
+      <p class="sub">Let's learn our numbers!</p>
+      <button class="bigbtn go" id="startBtn">▶ Play</button>
+      <p class="sub" style="margin-top:4px;">Or pick a number to start:</p>
+      <div id="picker"></div>
+      <div class="vrow">🗣️ <select id="voiceSel"></select>
+        <button class="iconbtn" id="testVoice">🔊 Test</button></div>
+      <p class="hint">🗣️ <b>For the most natural, friendly voice, open this in Microsoft Edge</b> — free lifelike voices (marked ✨). Pick one and tap Test.<br>
+      Each number is a little lesson: she sees it and <b>presses the digit</b>, then <b>spells the word</b> (ONE, TWO…), then plays its counting game. The answer <b>glows</b> if she needs help, and wrong keys just wiggle — she can't fail. Tap 🔁 to hear it again.</p>
+    </section>
+
+    <!-- QUESTION / LESSON -->
+    <section class="screen" id="scQ">
+      <p class="badge" id="qBadge"></p>
+      <p class="sub" id="qAsk"></p>
+      <div id="qDigit">1</div>
+      <div id="objs"></div>
+      <div id="numrow"></div>
+      <div id="tiles"></div>
+    </section>
+
+    <!-- NUMBER COMPLETE -->
+    <section class="screen" id="scWin">
+      <div class="bigemoji" id="winEmoji">🎉</div>
+      <p class="praise" id="winNum">1</p>
+      <p class="sub" id="winMsg">You learned it!</p>
+      <button class="bigbtn go" id="nextBtn">Next number ➡️</button>
+    </section>
+
+    <!-- ALL DONE -->
+    <section class="screen" id="scDone">
+      <h1>🏆 Yay! 🏆</h1>
+      <p class="sub" id="doneMsg">You learned all your numbers!</p>
+      <button class="bigbtn go" id="againBtn">Start again 🔁</button>
+    </section>
+  </div>
+
+<script>
+/* ---------- Content ---------- */
+const NUM=['zero','one','two','three','four','five','six','seven','eight','nine','ten'];
+const EMO=['🍎','🍊','🍓','🍌','⭐','🎈','🍩','🐟','🦋','🌸','🐱','🐶','🚗','🍪','🧁','🐥'];
+const EMO_WORD={'🍎':'apples','🍊':'oranges','🍓':'strawberries','🍌':'bananas','⭐':'stars','🎈':'balloons','🍩':'donuts','🐟':'fish','🦋':'butterflies','🌸':'flowers','🐱':'cats','🐶':'dogs','🚗':'cars','🍪':'cookies','🧁':'cupcakes','🐥':'chicks'};
+const MAXN=9;
+
+/* ---------- State ---------- */
+let cur={n:1, steps:[], i:0, answer:1};
+let screen="start", muted=false, wrongCount=0, countToken=0, typed=0;
+let backStack=[], content=null;
+const snap=()=>JSON.parse(JSON.stringify(cur));
+function pushForward(){ if(content) backStack.push(content); }
+function back(){
+  try{speechSynthesis.cancel();}catch(e){}
+  if(screen==="win"){ renderStep(); return; }          // back to the last step you saw
+  if(screen==="q"){
+    if(backStack.length){ cur=backStack.pop(); content=snap(); renderStep(); }
+    else window.location.href="index.html";
+    return;
+  }
+  window.location.href="index.html";                   // start/done -> menu
+}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+/* ---------- Voice (same engine as Spell-It) ---------- */
+let voice=null, allVoices=[];
+function scoreVoice(v){
+  const n=(v.name||'').toLowerCase(), l=(v.lang||'').toLowerCase();
+  if(!l.startsWith('en')) return -1;
+  let s = /^en-(us|gb|au|ca)/.test(l) ? 5 : 2;
+  if(/natural|neural/.test(n)) s+=60;
+  if(/online/.test(n))         s+=25;
+  if(/google/.test(n))         s+=35;
+  if(/aria|jenny|jane|sonia|libby|michelle|ava|emma|clara|samantha|karen|tessa|moira|hazel|zira|female/.test(n)) s+=10;
+  if(/david|mark|george|james|guy|ravi|\bmale\b/.test(n)) s-=4;
+  return s;
+}
+function loadVoice(){
+  const vs=speechSynthesis.getVoices(); if(!vs.length) return;
+  allVoices = vs.filter(v=>/^en/i.test(v.lang)).sort((a,b)=>scoreVoice(b)-scoreVoice(a));
+  const saved=localStorage.getItem('spellit_voice');   // share choice with Spell-It
+  voice = (saved && allVoices.find(v=>v.voiceURI===saved)) || allVoices[0] || vs[0] || null;
+  buildVoiceMenu();
+}
+if('speechSynthesis' in window){ loadVoice(); speechSynthesis.onvoiceschanged=loadVoice; }
+function buildVoiceMenu(){
+  const sel=document.getElementById('voiceSel'); if(!sel||!allVoices.length) return;
+  sel.innerHTML='';
+  allVoices.forEach((v,i)=>{
+    const o=document.createElement('option'); o.value=v.voiceURI;
+    const nm=v.name.split(' - ')[0].replace(/microsoft/i,'').trim();
+    o.textContent=(i===0?'⭐ ':'')+nm+(/natural|neural/i.test(v.name)?' ✨':'');
+    if(voice&&v.voiceURI===voice.voiceURI) o.selected=true;
+    sel.appendChild(o);
+  });
+}
+function say(text,{rate=0.95,pitch=1.2,then=null}={}){
+  if(muted || !('speechSynthesis' in window)){ if(then) setTimeout(then,250); return; }
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  if(voice) u.voice=voice;
+  u.rate=rate; u.pitch=pitch; u.volume=1;
+  if(then){ let done=false; const go=()=>{ if(done)return; done=true; then(); };
+            u.onend=go; setTimeout(go, Math.max(1600, text.length*95)); }
+  speechSynthesis.speak(u);
+}
+const cheer=(t)=>say(t,{rate:1.0,pitch:1.45});
+
+/* ---------- DOM ---------- */
+const $=id=>document.getElementById(id);
+const screens={start:$("scStart"),q:$("scQ"),win:$("scWin"),done:$("scDone")};
+function show(name){ screen=name; Object.entries(screens).forEach(([k,el])=>el.classList.toggle("on",k===name)); }
+function updateProgress(){ $("progressFill").style.width=(100*(cur.n-1)/MAXN)+"%"; $("countTag").textContent=cur.n; }
+
+/* ---------- Number row ---------- */
+function buildNumRow(){
+  const row=$("numrow"); row.innerHTML="";
+  for(let d=0; d<=9; d++){
+    const b=document.createElement("button"); b.className="num"; b.textContent=d; b.dataset.n=d;
+    b.onclick=()=>checkAnswer(d);
+    row.appendChild(b);
+  }
+}
+const numBtn=n=>$("numrow").querySelector(`.num[data-n="${n}"]`);
+function glowNum(n){ const b=numBtn(n); if(b) b.classList.add("glow"); }
+function emojiSpans(n,emo){ let s=""; for(let k=0;k<n;k++) s+=`<span class="obj">${emo}</span>`; return s; }
+
+/* ---------- Spell the number word (guided typing) ---------- */
+const LETTERNAME={A:"A",B:"Bee",C:"See",E:"Ee",G:"Gee",H:"Aitch",I:"Eye",J:"Jay",K:"Kay",O:"Oh",P:"Pee",Q:"Cue",R:"Are",U:"You",W:"Double You",Y:"Why"};
+const sayLetterName=ch=>say(LETTERNAME[ch]||ch,{rate:0.8,pitch:1.2});
+const cap=w=>w[0]+w.slice(1).toLowerCase();
+function buildTiles(word){
+  const t=$("tiles"); t.innerHTML=""; typed=0;
+  [...word].forEach((c,i)=>{ const d=document.createElement("div"); d.className="tile"+(i===0?" next":""); d.textContent=c; t.appendChild(d); });
+}
+function handleLetter(letter){
+  countToken++;   // stop any spell-out hint
+  const word=cur.steps[cur.i].word, tiles=$("tiles").children;
+  if(typed>=word.length) return;
+  if(letter===word[typed]){
+    const tl=tiles[typed]; tl.classList.remove("next"); tl.classList.add("done","justhit");
+    sayLetterName(letter); typed++;
+    if(typed<word.length) tiles[typed].classList.add("next");
+    else setTimeout(stepDone, 650);
+  } else { if(tiles[typed]) shake(tiles[typed]); }
+}
+function spellOutHint(word){
+  if(muted||screen!=="q") return;
+  const my=++countToken; let i=0;
+  const next=()=>{ if(my===countToken && i<word.length && screen==="q"){ sayLetterName(word[i]); i++; setTimeout(next,680);} };
+  next();
+}
+
+/* ---------- Build the steps for one number ---------- */
+function stepsForNumber(n){
+  const es=shuffle(EMO);
+  const steps=[{type:'lesson'}, {type:'word', word:NUM[n].toUpperCase()}];
+  steps.push({type:'count', emoji:es[0], word:EMO_WORD[es[0]], answer:n});
+  if(n>=2){ const a=ri(1,n-1), b=n-a, e=es[1]; steps.push({type:'add', a, b, emoji:e, word:EMO_WORD[e], answer:n}); }
+  else { steps.push({type:'count', emoji:es[1], word:EMO_WORD[es[1]], answer:n}); }
+  return steps;
+}
+
+/* ---------- Flow ---------- */
+function startNumber(n, jump){
+  cur={n, steps:stepsForNumber(n), i:0, answer:n};
+  try{localStorage.setItem('mathfun_n', n);}catch(e){}
+  if(jump){ backStack=[]; content=null; } else { pushForward(); }
+  renderStep();
+  content=snap();
+}
+function sayPrompt(){
+  const step=cur.steps[cur.i], n=cur.n;
+  if(step.type==='lesson') say(`This is the number ${NUM[n]}. Can you press ${NUM[n]}?`);
+  else if(step.type==='word') say(`Now let's spell ${NUM[n]}!`,{then:()=>spellOutHint(step.word)});
+  else if(step.type==='count'){ const intro = cur.i===2 ? `Now let's play with ${NUM[n]}! ` : ''; say(`${intro}How many ${step.word}? Can you count them?`); }
+  else say(`${NUM[step.a]} plus ${NUM[step.b]}. How many all together?`);
+}
+function renderStep(){
+  countToken++; wrongCount=0; typed=0;
+  const step=cur.steps[cur.i], n=cur.n;
+  cur.answer = step.answer!=null ? step.answer : n;
+  show("q"); updateProgress(); buildNumRow();
+  const digit=$("qDigit"), objs=$("objs"), ask=$("qAsk"), badge=$("qBadge"), tiles=$("tiles");
+  $("numrow").style.display=""; tiles.style.display="none"; tiles.innerHTML="";
+  if(step.type==='lesson'){
+    badge.textContent="📚 Lesson — the number";
+    digit.style.display=""; digit.textContent=n;
+    objs.innerHTML=emojiSpans(n, pick(EMO));
+    ask.textContent=`This is the number ${n}`;
+    glowNum(n);
+  } else if(step.type==='word'){
+    badge.textContent="✏️ Lesson — the word";
+    digit.style.display="none"; objs.innerHTML="";
+    $("numrow").style.display="none"; tiles.style.display="";
+    buildTiles(step.word);
+    ask.innerHTML=`Now spell the number <b>${n}</b>! 👇`;
+  } else if(step.type==='count'){
+    badge.textContent=`🎮 The number ${n} game`;
+    digit.style.display="none";
+    objs.innerHTML=emojiSpans(step.answer, step.emoji);
+    ask.innerHTML=`How many ${step.word}? Count them! 👇`;
+  } else {
+    badge.textContent=`🎮 The number ${n} game`;
+    digit.style.display="none";
+    objs.innerHTML=emojiSpans(step.a, step.emoji)+`<span class="plus">+</span>`+emojiSpans(step.b, step.emoji);
+    ask.innerHTML=`How many all together? 👇`;
+  }
+  sayPrompt();
+}
+function checkAnswer(num){
+  if(screen!=="q") return;
+  if(num===cur.answer){
+    countToken++;
+    const b=numBtn(num); if(b){ b.classList.remove("glow"); b.classList.add("good"); }
+    say(NUM[num],{rate:0.85,pitch:1.25});
+    setTimeout(stepDone, 950);
+  } else {
+    wrongCount++;
+    const b=numBtn(num); if(b) shake(b);
+    if(wrongCount>=3){ glowNum(cur.answer); countAlong(); }
+  }
+}
+function stepDone(){
+  cur.i++;
+  if(cur.i>=cur.steps.length) finishNumber();
+  else { pushForward(); renderStep(); content=snap(); }
+}
+function finishNumber(){
+  $("winEmoji").textContent="🎉";
+  $("winNum").textContent=cur.n;
+  $("winMsg").textContent=`You learned the number ${cur.n}!`;
+  show("win"); confetti();
+  cheer(`Hooray! You learned the number ${NUM[cur.n]}! ${pick(["You're so smart!","Great job!","Amazing!","You're a superstar!"])}`);
+}
+function advanceNumber(){
+  const n=cur.n+1;
+  if(n>MAXN){
+    show("done"); $("countTag").textContent="🏆"; $("progressFill").style.width="100%";
+    $("doneMsg").textContent="You learned all your numbers, 1 to "+MAXN+"!";
+    cheer("Wow! You learned all your numbers! Hip hip hooray!");
+    try{localStorage.removeItem('mathfun_n');}catch(e){}
+    return;
+  }
+  startNumber(n);
+}
+
+/* ---------- Count-along helper ---------- */
+async function countAlong(){
+  const my=++countToken;
+  const objs=[...document.querySelectorAll('#objs .obj')];
+  if(!objs.length) return;
+  for(let k=0;k<objs.length;k++){
+    if(my!==countToken || screen!=="q") return;
+    objs[k].classList.add('counted'); say(NUM[k+1],{rate:0.9,pitch:1.2});
+    await wait(620);
+  }
+}
+
+/* ---------- Input ---------- */
+document.addEventListener("keydown",e=>{
+  const k=e.key;
+  if((k===" "||k==="Enter") && screen==="win"){ e.preventDefault(); advanceNumber(); return; }
+  if(screen!=="q") return;
+  const step=cur.steps[cur.i];
+  if(step.type==='word'){ if(/^[a-zA-Z]$/.test(k)) handleLetter(k.toUpperCase()); }
+  else { if(/^[0-9]$/.test(k)) checkAnswer(parseInt(k,10)); }
+});
+
+/* ---------- Helpers ---------- */
+function shake(el){el.classList.add("shake");setTimeout(()=>el.classList.remove("shake"),360);}
+function confetti(){
+  const box=$("confetti"); const set=["🎉","⭐","🌟","🎈","💖","🌈","✨","🍭","🔢"];
+  for(let i=0;i<28;i++){
+    const s=document.createElement("div"); s.className="conf"; s.textContent=pick(set);
+    s.style.left=Math.random()*100+"%";
+    s.style.animationDuration=(1.6+Math.random()*1.6)+"s";
+    s.style.animationDelay=(Math.random()*.5)+"s";
+    s.style.fontSize=(20+Math.random()*26)+"px";
+    box.appendChild(s); setTimeout(()=>s.remove(),3500);
+  }
+}
+
+/* ---------- Buttons ---------- */
+$("startBtn").onclick=()=>{ let n=1; try{n=parseInt(localStorage.getItem('mathfun_n'),10)||1;}catch(e){} startNumber(Math.min(Math.max(n,1),MAXN), true); };
+$("backBtn").onclick=back;
+$("nextBtn").onclick=advanceNumber;
+$("againBtn").onclick=()=>startNumber(1);
+$("homeBtn").onclick=()=>{ try{speechSynthesis.cancel();}catch(e){} window.location.href="index.html"; };
+$("repeatBtn").onclick=()=>{
+  if(screen!=="q") return;
+  const step=cur.steps[cur.i];
+  sayPrompt();   // word step re-spells via its own then-hint
+  if(step.type==='count'||step.type==='add') setTimeout(countAlong, step.type==='add'?1800:1200);
+};
+$("muteBtn").onclick=()=>{ muted=!muted; if(muted)speechSynthesis.cancel(); $("muteBtn").textContent=muted?"🔇":"🔊"; };
+$("voiceSel").onchange=e=>{ const v=allVoices.find(x=>x.voiceURI===e.target.value); if(v){ voice=v; try{localStorage.setItem("spellit_voice",v.voiceURI);}catch(err){} cheer("Hi! Let's do some math!"); } };
+$("testVoice").onclick=()=>cheer("Woohoo! Let's count and add! You can do it!");
+
+/* build number picker 1..9 */
+const pk=$("picker");
+for(let d=1; d<=MAXN; d++){ const b=document.createElement("button"); b.className="pk"; b.textContent=d; b.onclick=()=>startNumber(d, true); pk.appendChild(b); }
+</script>
+</body>
+</html>

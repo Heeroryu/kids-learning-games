@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Color Fun! 🎨</title>
+<style>
+  :root{
+    --pink:#ff6b9d; --yellow:#ffd23f; --blue:#4ecdc4; --purple:#a06cd5;
+    --green:#3ddc84; --orange:#ff924c; --ink:#2d2a4a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%; margin:0;}
+  body{
+    font-family:"Comic Sans MS","Baloo 2",Verdana,system-ui,sans-serif;
+    background:linear-gradient(135deg,#ffe6f0 0%,#e8f3ff 50%,#eafff0 100%);
+    color:var(--ink); overflow:hidden; user-select:none;
+    display:flex; flex-direction:column; height:100vh;
+  }
+  #bar{display:flex; align-items:center; gap:10px; padding:10px 14px; flex:0 0 auto;}
+  .iconbtn{border:none; cursor:pointer; font-size:26px; line-height:1; background:#ffffffaa; border-radius:16px; padding:8px 12px; box-shadow:0 3px 0 #00000018; transition:transform .08s;}
+  .iconbtn:active{transform:translateY(2px); box-shadow:0 1px 0 #00000018;}
+  #progress{flex:1; height:18px; background:#ffffff88; border-radius:99px; overflow:hidden; box-shadow:inset 0 2px 4px #0000001a;}
+  #progressFill{height:100%; width:0%; background:linear-gradient(90deg,var(--green),var(--blue)); transition:width .4s;}
+  #tag{font-weight:bold; font-size:22px; min-width:1.8em; text-align:center;}
+
+  #stage{flex:1; position:relative; display:flex; align-items:center; justify-content:center; padding:10px;}
+  .screen{position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:16px; text-align:center;}
+  .screen.on{display:flex; animation:pop .4s ease;}
+  @keyframes pop{from{transform:scale(.9); opacity:0;} to{transform:scale(1); opacity:1;}}
+
+  h1{font-size:clamp(40px,9vw,84px); margin:0; color:var(--purple); text-shadow:3px 3px 0 #fff;}
+  .sub{font-size:clamp(18px,4vw,28px); margin:0;}
+
+  .bigbtn{border:none; cursor:pointer; color:#fff; font-weight:bold; font-size:clamp(22px,5vw,32px); padding:18px 36px; border-radius:30px; background:var(--pink); box-shadow:0 6px 0 #c94b78; transition:transform .08s;}
+  .bigbtn:active{transform:translateY(4px); box-shadow:0 2px 0 #c94b78;}
+  .bigbtn.go{background:var(--green); box-shadow:0 6px 0 #2bb56a;}
+
+  /* color swatch */
+  #swatch{
+    width:min(34vh,62vw); height:min(34vh,62vw); border-radius:50%;
+    border:6px solid #ffffff; box-shadow:0 12px 24px #0003, 0 0 0 4px #00000010;
+  }
+  .bigdot{font-size:min(30vh,50vw); line-height:1; filter:drop-shadow(0 8px 10px #0003);}
+
+  /* letter tiles */
+  #tiles{display:flex; gap:clamp(6px,1.5vw,14px); flex-wrap:wrap; justify-content:center;}
+  .tile{width:clamp(46px,12vw,88px); height:clamp(58px,15vw,108px); border-radius:16px; background:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:clamp(30px,8vw,62px); font-weight:900;
+    color:#cfcfe6; box-shadow:0 5px 0 #00000015; transition:transform .1s, background .15s, color .15s;}
+  .tile.done{color:var(--green); background:#eafff3; transform:scale(1.04);}
+  .tile.next{color:var(--orange); background:#fff7e6; outline:4px dashed var(--orange); animation:glow 1s ease-in-out infinite;}
+  .tile.justhit{animation:hit .3s;}
+  @keyframes hit{0%{transform:scale(1.35);}100%{transform:scale(1.04);}}
+  @keyframes glow{0%,100%{box-shadow:0 0 0 0 #ff924c66, 0 5px 0 #00000015;}50%{box-shadow:0 0 0 12px #ff924c00, 0 5px 0 #00000015;}}
+  .tile.shake, #swatch.shake{animation:shake .35s;}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)rotate(-3deg)}40%{transform:translateX(12px)rotate(3deg)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}
+
+  /* color picker */
+  #picker{display:grid; grid-template-columns:repeat(5,1fr); gap:clamp(10px,2.6vw,18px); width:100%; max-width:340px; margin:0 auto;}
+  .pk{aspect-ratio:1; width:100%; border-radius:50%; border:4px solid #fff; cursor:pointer; box-shadow:0 5px 0 #00000022, 0 6px 10px #00000022; transition:transform .12s, box-shadow .12s;}
+  .pk:hover{transform:translateY(-3px) scale(1.06);}
+  .pk:active{transform:translateY(2px); box-shadow:0 2px 0 #00000022;}
+
+  #confetti{position:absolute; inset:0; pointer-events:none; overflow:hidden;}
+  .conf{position:absolute; top:-40px; font-size:28px; animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg); opacity:.9;}}
+
+  .praise{font-size:clamp(28px,7vw,56px); font-weight:900; color:var(--pink); text-shadow:2px 2px 0 #fff;}
+  .hint{font-size:15px; opacity:.7; max-width:560px;}
+  .vrow{display:flex; align-items:center; gap:8px; font-size:18px; flex-wrap:wrap; justify-content:center;}
+  #voiceSel{font-family:inherit; font-size:16px; padding:8px 10px; border-radius:12px; border:2px solid #fff; background:#fff; color:var(--ink); max-width:240px; box-shadow:0 3px 0 #00000012;}
+</style>
+</head>
+<body>
+  <div id="bar">
+    <button class="iconbtn" id="homeBtn" title="Home (menu)">🏠</button>
+    <button class="iconbtn" id="backBtn" title="Back">⬅️</button>
+    <button class="iconbtn" id="muteBtn" title="Sound on/off">🔊</button>
+    <div id="progress"><div id="progressFill"></div></div>
+    <div id="tag">🎨</div>
+    <button class="iconbtn" id="repeatBtn" title="Say it again">🔁</button>
+  </div>
+
+  <div id="stage">
+    <div id="confetti"></div>
+
+    <!-- START -->
+    <section class="screen on" id="scStart">
+      <h1>Color Fun! 🎨</h1>
+      <p class="sub">Let's learn our colors!</p>
+      <button class="bigbtn go" id="startBtn">▶ Play</button>
+      <p class="sub" style="margin-top:4px;">Or pick a color to start:</p>
+      <div id="picker"></div>
+      <div class="vrow">🗣️ <select id="voiceSel"></select>
+        <button class="iconbtn" id="testVoice">🔊 Test</button></div>
+      <p class="hint">🗣️ <b>For the most natural, friendly voice, open this in Microsoft Edge</b> — free lifelike voices (marked ✨). Pick one and tap Test.<br>
+      She sees a color, hears its name, then spells the word. The next letter <b>glows</b> — she just presses that key. Wrong keys wiggle, so she can't fail. Tap 🔁 to hear it again.</p>
+    </section>
+
+    <!-- QUESTION -->
+    <section class="screen" id="scQ">
+      <p class="sub" id="qAsk">What color is this?</p>
+      <div id="swatch"></div>
+      <div id="tiles"></div>
+    </section>
+
+    <!-- CELEBRATE -->
+    <section class="screen" id="scWin">
+      <div class="bigdot" id="winDot">🔴</div>
+      <p class="praise" id="winWord">RED!</p>
+      <p class="sub" id="winMsg">🎉 You did it! 🎉</p>
+      <button class="bigbtn go" id="nextBtn">Next color ➡️</button>
+    </section>
+
+    <!-- DONE -->
+    <section class="screen" id="scDone">
+      <h1>🏆 Yay! 🏆</h1>
+      <p class="sub">You learned all your colors!</p>
+      <button class="bigbtn go" id="againBtn">Play again 🔁</button>
+    </section>
+  </div>
+
+<script>
+/* ---------- Content ---------- */
+const COLORS=[
+  {word:'RED',    hex:'#e63329', dot:'🔴'},
+  {word:'BLUE',   hex:'#2b6fe0', dot:'🔵'},
+  {word:'PINK',   hex:'#ff6fb0', dot:'💗'},
+  {word:'GREEN',  hex:'#33b24a', dot:'🟢'},
+  {word:'BROWN',  hex:'#8a5a2b', dot:'🟤'},
+  {word:'BLACK',  hex:'#2d2a3a', dot:'⚫'},
+  {word:'WHITE',  hex:'#ffffff', dot:'⚪'},
+  {word:'YELLOW', hex:'#ffd21f', dot:'🟡'},
+  {word:'ORANGE', hex:'#ff8a2b', dot:'🟠'},
+  {word:'PURPLE', hex:'#9b46d6', dot:'🟣'},
+];
+
+/* ---------- State ---------- */
+let cur={i:0, word:'RED'};
+let screen="start", muted=false, typed=0, countToken=0;
+let backStack=[], content=null;
+function pushForward(){ if(content) backStack.push(content); }
+function back(){
+  try{speechSynthesis.cancel();}catch(e){}
+  if(screen==="win"){ renderColor(); return; }          // back to the color you just did
+  if(screen==="q"){
+    if(backStack.length){ const p=backStack.pop(); cur={i:p.i, word:COLORS[p.i].word}; content={i:p.i}; renderColor(); }
+    else window.location.href="index.html";
+    return;
+  }
+  window.location.href="index.html";                    // start/done -> menu
+}
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+/* ---------- Voice (shared engine + voice choice with the other apps) ---------- */
+let voice=null, allVoices=[];
+function scoreVoice(v){
+  const n=(v.name||'').toLowerCase(), l=(v.lang||'').toLowerCase();
+  if(!l.startsWith('en')) return -1;
+  let s = /^en-(us|gb|au|ca)/.test(l) ? 5 : 2;
+  if(/natural|neural/.test(n)) s+=60;
+  if(/online/.test(n))         s+=25;
+  if(/google/.test(n))         s+=35;
+  if(/aria|jenny|jane|sonia|libby|michelle|ava|emma|clara|samantha|karen|tessa|moira|hazel|zira|female/.test(n)) s+=10;
+  if(/david|mark|george|james|guy|ravi|\bmale\b/.test(n)) s-=4;
+  return s;
+}
+function loadVoice(){
+  const vs=speechSynthesis.getVoices(); if(!vs.length) return;
+  allVoices = vs.filter(v=>/^en/i.test(v.lang)).sort((a,b)=>scoreVoice(b)-scoreVoice(a));
+  const saved=localStorage.getItem('spellit_voice');
+  voice = (saved && allVoices.find(v=>v.voiceURI===saved)) || allVoices[0] || vs[0] || null;
+  buildVoiceMenu();
+}
+if('speechSynthesis' in window){ loadVoice(); speechSynthesis.onvoiceschanged=loadVoice; }
+function buildVoiceMenu(){
+  const sel=document.getElementById('voiceSel'); if(!sel||!allVoices.length) return;
+  sel.innerHTML='';
+  allVoices.forEach((v,i)=>{
+    const o=document.createElement('option'); o.value=v.voiceURI;
+    const nm=v.name.split(' - ')[0].replace(/microsoft/i,'').trim();
+    o.textContent=(i===0?'⭐ ':'')+nm+(/natural|neural/i.test(v.name)?' ✨':'');
+    if(voice&&v.voiceURI===voice.voiceURI) o.selected=true;
+    sel.appendChild(o);
+  });
+}
+function say(text,{rate=0.95,pitch=1.2,then=null}={}){
+  if(muted || !('speechSynthesis' in window)){ if(then) setTimeout(then,250); return; }
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  if(voice) u.voice=voice;
+  u.rate=rate; u.pitch=pitch; u.volume=1;
+  if(then){ let done=false; const go=()=>{ if(done)return; done=true; then(); };
+            u.onend=go; setTimeout(go, Math.max(1600, text.length*95)); }
+  speechSynthesis.speak(u);
+}
+const cheer=(t)=>say(t,{rate:1.0,pitch:1.45});
+const LETTERNAME={A:"A",B:"Bee",C:"See",E:"Ee",G:"Gee",H:"Aitch",I:"Eye",J:"Jay",K:"Kay",O:"Oh",P:"Pee",Q:"Cue",R:"Are",U:"You",W:"Double You",Y:"Why"};
+const sayLetterName=ch=>say(LETTERNAME[ch]||ch,{rate:0.8,pitch:1.2});
+const cap=w=>w[0]+w.slice(1).toLowerCase();
+
+/* ---------- DOM ---------- */
+const $=id=>document.getElementById(id);
+const screens={start:$("scStart"),q:$("scQ"),win:$("scWin"),done:$("scDone")};
+function show(name){ screen=name; Object.entries(screens).forEach(([k,el])=>el.classList.toggle("on",k===name)); }
+function updateProgress(){ $("progressFill").style.width=(100*cur.i/COLORS.length)+"%"; $("tag").textContent=cur.i+1; }
+
+/* ---------- Flow ---------- */
+function buildTiles(word){
+  const t=$("tiles"); t.innerHTML=""; typed=0;
+  [...word].forEach((c,i)=>{ const d=document.createElement("div"); d.className="tile"+(i===0?" next":""); d.textContent=c; t.appendChild(d); });
+}
+function startColor(i, jump){
+  cur={i, word:COLORS[i].word};
+  try{localStorage.setItem('colorfun_i', i);}catch(e){}
+  if(jump){ backStack=[]; content=null; } else { pushForward(); }
+  renderColor();
+  content={i};
+}
+function renderColor(){
+  countToken++;
+  const c=COLORS[cur.i];
+  show("q"); updateProgress();
+  $("swatch").style.background=c.hex;
+  $("qAsk").textContent="What color is this?";
+  buildTiles(c.word);
+  say(`What color is this? It's ${c.word.toLowerCase()}! Can you spell ${c.word.toLowerCase()}?`, {then:()=>spellOutHint(c.word)});
+}
+function handleLetter(letter){
+  countToken++;   // stop any spell-out hint
+  const word=cur.word, tiles=$("tiles").children;
+  if(typed>=word.length) return;
+  if(letter===word[typed]){
+    const tl=tiles[typed]; tl.classList.remove("next"); tl.classList.add("done","justhit");
+    sayLetterName(letter); typed++;
+    if(typed<word.length) tiles[typed].classList.add("next");
+    else setTimeout(goWin, 650);
+  } else { if(tiles[typed]) shake(tiles[typed]); }
+}
+function spellOutHint(word){
+  if(muted||screen!=="q") return;
+  const my=++countToken; let i=0;
+  const next=()=>{ if(my===countToken && i<word.length && screen==="q"){ sayLetterName(word[i]); i++; setTimeout(next,680);} };
+  next();
+}
+function goWin(){
+  const c=COLORS[cur.i];
+  $("winDot").textContent=c.dot;
+  $("winWord").textContent=c.word+"!";
+  $("winMsg").textContent=pick(["🎉 You did it! 🎉","⭐ Amazing! ⭐","🌈 Super star! 🌈","👏 Well done! 👏"]);
+  show("win"); confetti();
+  cheer(`Yes! You spelled ${c.word.toLowerCase()}! ${pick(["Woohoo!","Amazing job!","You are so smart!","You're a superstar!"])}`);
+}
+function nextColor(){
+  const i=cur.i+1;
+  if(i>=COLORS.length){
+    show("done"); $("tag").textContent="🏆"; $("progressFill").style.width="100%";
+    cheer("Wow! You learned all your colors! Hip hip hooray!");
+    try{localStorage.removeItem('colorfun_i');}catch(e){}
+    return;
+  }
+  startColor(i);
+}
+
+/* ---------- Input ---------- */
+document.addEventListener("keydown",e=>{
+  const k=e.key;
+  if((k===" "||k==="Enter") && screen==="win"){ e.preventDefault(); nextColor(); return; }
+  if(screen==="q" && /^[a-zA-Z]$/.test(k)) handleLetter(k.toUpperCase());
+});
+
+/* ---------- Helpers ---------- */
+function shake(el){el.classList.add("shake");setTimeout(()=>el.classList.remove("shake"),360);}
+function confetti(){
+  const box=$("confetti"); const set=["🎉","⭐","🌟","🎈","💖","🌈","✨","🍭","🎨"];
+  for(let i=0;i<28;i++){
+    const s=document.createElement("div"); s.className="conf"; s.textContent=pick(set);
+    s.style.left=Math.random()*100+"%";
+    s.style.animationDuration=(1.6+Math.random()*1.6)+"s";
+    s.style.animationDelay=(Math.random()*.5)+"s";
+    s.style.fontSize=(20+Math.random()*26)+"px";
+    box.appendChild(s); setTimeout(()=>s.remove(),3500);
+  }
+}
+
+/* ---------- Buttons ---------- */
+$("startBtn").onclick=()=>{ let i=0; try{i=parseInt(localStorage.getItem('colorfun_i'),10)||0;}catch(e){} startColor(Math.min(Math.max(i,0),COLORS.length-1), true); };
+$("backBtn").onclick=back;
+$("nextBtn").onclick=nextColor;
+$("againBtn").onclick=()=>startColor(0);
+$("homeBtn").onclick=()=>{ try{speechSynthesis.cancel();}catch(e){} window.location.href="index.html"; };
+$("repeatBtn").onclick=()=>{ if(screen!=="q") return; const c=COLORS[cur.i]; say(`It's ${c.word.toLowerCase()}! Can you spell ${c.word.toLowerCase()}?`,{then:()=>spellOutHint(c.word)}); };
+$("muteBtn").onclick=()=>{ muted=!muted; if(muted)speechSynthesis.cancel(); $("muteBtn").textContent=muted?"🔇":"🔊"; };
+$("voiceSel").onchange=e=>{ const v=allVoices.find(x=>x.voiceURI===e.target.value); if(v){ voice=v; try{localStorage.setItem("spellit_voice",v.voiceURI);}catch(err){} cheer("Hi! Let's learn some colors!"); } };
+$("testVoice").onclick=()=>cheer("Woohoo! Let's learn our colors! You can do it!");
+
+/* build color picker */
+const pk=$("picker");
+COLORS.forEach((c,i)=>{ const b=document.createElement("button"); b.className="pk"; b.style.background=c.hex; b.title=c.word; b.onclick=()=>startColor(i, true); pk.appendChild(b); });
+</script>
+</body>
+</html>
