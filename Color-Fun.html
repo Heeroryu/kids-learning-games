@@ -274,6 +274,7 @@ function nextColor(){
 
 /* ---------- Input ---------- */
 document.addEventListener("keydown",e=>{
+  if(e.repeat) return;                 // ignore held-key auto-repeat
   const k=e.key;
   if((k===" "||k==="Enter") && screen==="win"){ e.preventDefault(); nextColor(); return; }
   if(screen==="q" && spellReady && /^[a-zA-Z]$/.test(k)) handleLetter(k.toUpperCase());

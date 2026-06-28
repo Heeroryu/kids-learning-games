@@ -339,6 +339,7 @@ function revealNumber(){
 function checkAnswer(num){
   if(screen!=="q" || !ready) return;
   if(num===cur.answer){
+    ready=false;                       // lock input so rapid presses/taps can't skip ahead
     countToken++;
     const b=numBtn(num); if(b){ b.classList.remove("glow"); b.classList.add("good"); }
     say(NUM[num],{rate:0.85,pitch:1.25});
@@ -387,6 +388,7 @@ async function countAlong(){
 
 /* ---------- Input ---------- */
 document.addEventListener("keydown",e=>{
+  if(e.repeat) return;                 // ignore held-key auto-repeat (was skipping steps)
   const k=e.key;
   if((k===" "||k==="Enter") && screen==="win"){ e.preventDefault(); advanceNumber(); return; }
   if(screen!=="q" || !ready) return;

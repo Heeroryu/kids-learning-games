@@ -356,6 +356,7 @@ function typeLetter(key){                 // spelling input
   } else { if(tiles[typed]) shake(tiles[typed]); }
 }
 document.addEventListener("keydown",e=>{
+  if(e.repeat) return;                 // ignore held-key auto-repeat
   const k=e.key;
   if(k===" "||k==="Enter"){ if(screen==="win"){ e.preventDefault(); advance(); } return; }
   if(!/^[a-zA-Z]$/.test(k)) return;
