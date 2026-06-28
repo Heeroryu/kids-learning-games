@@ -242,7 +242,7 @@ function glowNum(n){ const b=numBtn(n); if(b) b.classList.add("glow"); }
 function emojiSpans(n,emo){ let s=""; for(let k=0;k<n;k++) s+=`<span class="obj">${emo}</span>`; return s; }
 
 /* ---------- Spell the number word (guided typing) ---------- */
-const LETTERNAME={A:"A",B:"Bee",C:"See",E:"Ee",G:"Gee",H:"Aitch",I:"Eye",J:"Jay",K:"Kay",O:"Oh",P:"Pee",Q:"Cue",R:"Are",U:"You",W:"Double You",Y:"Why"};
+const LETTERNAME={A:"ay",B:"bee",C:"see",D:"dee",E:"ee",F:"eff",G:"jee",H:"aitch",I:"eye",J:"jay",K:"kay",L:"el",M:"em",N:"en",O:"oh",P:"pee",Q:"cue",R:"ar",S:"ess",T:"tee",U:"you",V:"vee",W:"double-you",X:"ex",Y:"why",Z:"zee"};
 const sayLetterName=ch=>say(LETTERNAME[ch]||ch,{rate:0.8,pitch:1.2});
 const cap=w=>w[0]+w.slice(1).toLowerCase();
 function buildTiles(word){
