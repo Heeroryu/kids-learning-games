@@ -7,12 +7,13 @@
 <style>
   :root{ --ink:#2d2a4a; }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html{-webkit-text-size-adjust:100%;}
   html,body{height:100%; margin:0;}
   body{
     font-family:"Comic Sans MS","Baloo 2",Verdana,system-ui,sans-serif;
     background:linear-gradient(135deg,#ffe0ec 0%,#e7e0ff 45%,#e0f7ff 100%);
     color:var(--ink); user-select:none;
-    min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:clamp(18px,4vh,40px); padding:24px; text-align:center;
   }
   h1{font-size:clamp(40px,9vw,88px); margin:0; color:#a06cd5; text-shadow:3px 3px 0 #fff;}

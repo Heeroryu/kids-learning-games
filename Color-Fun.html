@@ -10,12 +10,13 @@
     --green:#3ddc84; --orange:#ff924c; --ink:#2d2a4a;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html{-webkit-text-size-adjust:100%;}
   html,body{height:100%; margin:0;}
   body{
     font-family:"Comic Sans MS","Baloo 2",Verdana,system-ui,sans-serif;
     background:linear-gradient(135deg,#ffe6f0 0%,#e8f3ff 50%,#eafff0 100%);
     color:var(--ink); overflow:hidden; user-select:none;
-    display:flex; flex-direction:column; height:100vh;
+    display:flex; flex-direction:column; height:100vh; height:100dvh;
   }
   #bar{display:flex; align-items:center; gap:10px; padding:10px 14px; flex:0 0 auto;}
   .iconbtn{border:none; cursor:pointer; font-size:26px; line-height:1; background:#ffffffaa; border-radius:16px; padding:8px 12px; box-shadow:0 3px 0 #00000018; transition:transform .08s;}

@@ -10,6 +10,7 @@
     --green:#3ddc84; --orange:#ff924c; --ink:#2d2a4a;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html{-webkit-text-size-adjust:100%;}
   html,body{height:100%; margin:0;}
   body{
     font-family:"Comic Sans MS","Baloo 2",Verdana,system-ui,sans-serif;
@@ -18,7 +19,7 @@
     overflow:hidden;
     user-select:none;
     display:flex; flex-direction:column;
-    height:100vh;
+    height:100vh; height:100dvh;   /* dvh = correct visible height on iPad/iOS */
   }
   /* Top bar */
   #bar{
