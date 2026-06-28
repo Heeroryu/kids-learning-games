@@ -303,7 +303,8 @@ function goSpell(){
 function revealSpell(){
   if(screen!=="spell") return;
   const [word,emoji]=DATA[li][1][wi];
-  $("spellAsk").innerHTML=`Yes! It's <b>${cap(word)}</b>! Let's spell it ✏️`;   // Part 2: spell
+  const art=article(word);
+  $("spellAsk").innerHTML=`Yes! It's <b>${art}${cap(word)}</b>! Let's spell it ✏️`;   // Part 2: spell
   const t=$("tiles"); t.innerHTML="";
   [...word].forEach((c,i)=>{
     const d=document.createElement("div");
@@ -313,7 +314,7 @@ function revealSpell(){
     t.appendChild(d);
   });
   spellReady=true;
-  say(`Yes! It's ${word.toLowerCase()}. Let's spell ${word.toLowerCase()}!`,{then:()=>{ if(screen==="spell"&&spellReady) spellOutHint(word); }});
+  say(`Yes! It's ${art}${word.toLowerCase()}. Let's spell ${word.toLowerCase()}!`,{then:()=>{ if(screen==="spell"&&spellReady) spellOutHint(word); }});
 }
 function spellOutHint(word){ /* gently read the letters once */
   if(muted||screen!=="spell") return;
@@ -372,6 +373,10 @@ $("megaLetter").onclick=()=>pressLetter(DATA[li][0]);   // tap the big letter = 
 
 /* ---------- Helpers ---------- */
 function cap(w){return w[0]+w.slice(1).toLowerCase();}
+/* "a"/"an" with exceptions: uncountable/plural -> no article; UNICORN sounds like a consonant. */
+const NO_ART=new Set(["ICE","FIRE","GRAPES","MILK","JAM","JUICE","YARN"]);
+const A_EXC=new Set(["UNICORN"]);
+function article(w){ if(NO_ART.has(w)) return ""; if(A_EXC.has(w)) return "a "; return /^[AEIOU]/.test(w)?"an ":"a "; }
 function pick(a){return a[Math.floor(Math.random()*a.length)];}
 function shake(el){el.classList.add("shake");setTimeout(()=>el.classList.remove("shake"),360);}
 function flashGood(el){el.style.color="var(--green)";setTimeout(()=>el.style.color="",500);}
