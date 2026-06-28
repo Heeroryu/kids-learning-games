@@ -200,7 +200,7 @@ const DATA = [
 
 /* ---------- State ---------- */
 const TOTAL_WORDS = DATA.reduce((n,[,w])=>n+w.length,0);
-let li=0, wi=0, typed=0, screen="start", muted=false;
+let li=0, wi=0, typed=0, screen="start", muted=false, spellReady=false;
 let backStack=[], content=null;
 function pushForward(){ if(content) backStack.push({...content}); }
 function setContent(type){ content={type, li, wi}; }
@@ -288,10 +288,18 @@ function goLetter(){
 }
 
 function goSpell(){
-  show("spell"); updateProgress(); typed=0;
+  show("spell"); updateProgress(); typed=0; spellReady=false;
   const [word,emoji]=DATA[li][1][wi];
   $("wordEmoji").textContent=emoji;
-  $("spellAsk").innerHTML=`Can you spell <b>${cap(word)}</b>?`;
+  $("tiles").innerHTML="";                                  // hide letters during the guess
+  $("spellAsk").innerHTML=`Can you guess what this is? 🤔`; // Part 1: guess the object
+  saveSpot();
+  say("Can you guess what this is?",{then:()=>{ if(screen==="spell") setTimeout(()=>revealSpell(), 3000); }});
+}
+function revealSpell(){
+  if(screen!=="spell") return;
+  const [word,emoji]=DATA[li][1][wi];
+  $("spellAsk").innerHTML=`Yes! It's <b>${cap(word)}</b>! Let's spell it ✏️`;   // Part 2: spell
   const t=$("tiles"); t.innerHTML="";
   [...word].forEach((c,i)=>{
     const d=document.createElement("div");
@@ -299,8 +307,8 @@ function goSpell(){
     d.textContent=c; d.dataset.ch=c;
     t.appendChild(d);
   });
-  saveSpot();
-  say(`Can you spell ${word.toLowerCase()}?`,{then:()=>{ if(screen==="spell") spellOutHint(word); }});
+  spellReady=true;
+  say(`Yes! It's ${word.toLowerCase()}. Let's spell ${word.toLowerCase()}!`,{then:()=>{ if(screen==="spell"&&spellReady) spellOutHint(word); }});
 }
 function spellOutHint(word){ /* gently read the letters once */
   if(muted||screen!=="spell") return;
@@ -339,6 +347,7 @@ document.addEventListener("keydown",e=>{
     if(key===DATA[li][0]){ sayLetter(key); flashGood($("megaLetter")); setTimeout(()=>{ pushForward(); goSpell(); setContent("spell"); },500); }
     else { shake($("megaLetter")); }
   } else if(screen==="spell"){
+    if(!spellReady) return;                 // ignore keys during the "guess" intro
     const word=DATA[li][1][wi][0];
     const tiles=$("tiles").children;
     if(key===word[typed]){
@@ -379,7 +388,7 @@ $("homeBtn").onclick=()=>{ try{speechSynthesis.cancel();}catch(e){} window.locat
 $("backBtn").onclick=back;
 $("repeatBtn").onclick=()=>{
   if(screen==="letter") say(`What letter is this? Can you press ${LETTERNAME[DATA[li][0]]||DATA[li][0]}?`);
-  else if(screen==="spell") say(`Can you spell ${DATA[li][1][wi][0].toLowerCase()}?`,{then:()=>spellOutHint(DATA[li][1][wi][0])});
+  else if(screen==="spell"){ const w=DATA[li][1][wi][0].toLowerCase(); if(spellReady) say(`It's ${w}. Let's spell ${w}!`,{then:()=>spellOutHint(DATA[li][1][wi][0])}); else say("Can you guess what this is?"); }
   else if(screen==="win") say(`You spelled ${DATA[li][1][wi][0].toLowerCase()}!`);
 };
 $("muteBtn").onclick=()=>{ muted=!muted; if(muted)speechSynthesis.cancel(); $("muteBtn").textContent=muted?"🔇":"🔊"; };

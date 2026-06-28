@@ -138,7 +138,7 @@ const COLORS=[
 
 /* ---------- State ---------- */
 let cur={i:0, word:'RED'};
-let screen="start", muted=false, typed=0, countToken=0;
+let screen="start", muted=false, typed=0, countToken=0, spellReady=false;
 let backStack=[], content=null;
 function pushForward(){ if(content) backStack.push(content); }
 function back(){
@@ -219,13 +219,21 @@ function startColor(i, jump){
   content={i};
 }
 function renderColor(){
-  countToken++;
+  countToken++; spellReady=false;
   const c=COLORS[cur.i];
   show("q"); updateProgress();
   $("swatch").style.background=c.hex;
-  $("qAsk").textContent="What color is this?";
+  $("tiles").innerHTML="";                                       // hide letters during the guess
+  $("qAsk").innerHTML=`Can you guess what color this is? 🤔`;    // Part 1: guess the color
+  say("Can you guess what color this is?",{then:()=>{ if(screen==="q") setTimeout(()=>revealColor(), 3000); }});
+}
+function revealColor(){
+  if(screen!=="q") return;
+  const c=COLORS[cur.i];
+  $("qAsk").innerHTML=`Yes! It's <b>${cap(c.word)}</b>! Let's spell it ✏️`;   // Part 2: spell
   buildTiles(c.word);
-  say(`What color is this? It's ${c.word.toLowerCase()}! Can you spell ${c.word.toLowerCase()}?`, {then:()=>spellOutHint(c.word)});
+  spellReady=true;
+  say(`Yes! It's ${c.word.toLowerCase()}. Let's spell ${c.word.toLowerCase()}!`,{then:()=>{ if(screen==="q"&&spellReady) spellOutHint(c.word); }});
 }
 function handleLetter(letter){
   countToken++;   // stop any spell-out hint
@@ -267,7 +275,7 @@ function nextColor(){
 document.addEventListener("keydown",e=>{
   const k=e.key;
   if((k===" "||k==="Enter") && screen==="win"){ e.preventDefault(); nextColor(); return; }
-  if(screen==="q" && /^[a-zA-Z]$/.test(k)) handleLetter(k.toUpperCase());
+  if(screen==="q" && spellReady && /^[a-zA-Z]$/.test(k)) handleLetter(k.toUpperCase());
 });
 
 /* ---------- Helpers ---------- */
@@ -290,7 +298,7 @@ $("backBtn").onclick=back;
 $("nextBtn").onclick=nextColor;
 $("againBtn").onclick=()=>startColor(0);
 $("homeBtn").onclick=()=>{ try{speechSynthesis.cancel();}catch(e){} window.location.href="index.html"; };
-$("repeatBtn").onclick=()=>{ if(screen!=="q") return; const c=COLORS[cur.i]; say(`It's ${c.word.toLowerCase()}! Can you spell ${c.word.toLowerCase()}?`,{then:()=>spellOutHint(c.word)}); };
+$("repeatBtn").onclick=()=>{ if(screen!=="q") return; const w=COLORS[cur.i].word.toLowerCase(); if(spellReady) say(`It's ${w}. Let's spell ${w}!`,{then:()=>spellOutHint(COLORS[cur.i].word)}); else say("Can you guess what color this is?"); };
 $("muteBtn").onclick=()=>{ muted=!muted; if(muted)speechSynthesis.cancel(); $("muteBtn").textContent=muted?"🔇":"🔊"; };
 $("voiceSel").onchange=e=>{ const v=allVoices.find(x=>x.voiceURI===e.target.value); if(v){ voice=v; try{localStorage.setItem("spellit_voice",v.voiceURI);}catch(err){} cheer("Hi! Let's learn some colors!"); } };
 $("testVoice").onclick=()=>cheer("Woohoo! Let's learn our colors! You can do it!");
