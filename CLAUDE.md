@@ -20,6 +20,10 @@ double-click (works offline) **and** is hosted on GitHub Pages.
   `justify-content:safe center`) with fluid `clamp(..,vh,..)` spacing → scales to any resolution.
 - **Can't-fail UX:** the next correct input **glows orange**; wrong keys just **wiggle** (shake),
   never penalize. This is the core design rule — preserve it in every game.
+- **Audio kit** (in `sounds/`, reused from the little_paws_puzzle game): `sfx('correct')` =
+  `piece_snap.wav` on each correct input, `sfx('win')` = `victory.wav` on completion. Optional
+  background music (🎵 button) cycles off→music_1→2→3→off, saved in `localStorage['kg_music']`,
+  armed on first user gesture (autoplay rules). Master 🔇 mute silences voice + sfx + music.
 - Single-digit math only (**0–9**, one keypress). Going to 10+/teens breaks the single-key model.
 
 ## Shared conventions (keep consistent across all games)

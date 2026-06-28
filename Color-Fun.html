@@ -78,6 +78,7 @@
     <button class="iconbtn" id="homeBtn" title="Home (menu)">🏠</button>
     <button class="iconbtn" id="backBtn" title="Back">⬅️</button>
     <button class="iconbtn" id="muteBtn" title="Sound on/off">🔊</button>
+    <button class="iconbtn" id="musicBtn" title="Music on/off">🎵</button>
     <div id="progress"><div id="progressFill"></div></div>
     <div id="tag">🎨</div>
     <button class="iconbtn" id="repeatBtn" title="Say it again">🔁</button>
@@ -242,7 +243,7 @@ function handleLetter(letter){
   if(typed>=word.length) return;
   if(letter===word[typed]){
     const tl=tiles[typed]; tl.classList.remove("next"); tl.classList.add("done","justhit");
-    sayLetterName(letter); typed++;
+    sayLetterName(letter); sfx('correct'); typed++;
     if(typed<word.length) tiles[typed].classList.add("next");
     else setTimeout(goWin, 650);
   } else { if(tiles[typed]) shake(tiles[typed]); }
@@ -258,7 +259,7 @@ function goWin(){
   $("winDot").textContent=c.dot;
   $("winWord").textContent=c.word+"!";
   $("winMsg").textContent=pick(["🎉 You did it! 🎉","⭐ Amazing! ⭐","🌈 Super star! 🌈","👏 Well done! 👏"]);
-  show("win"); confetti();
+  show("win"); confetti(); sfx('win');
   cheer(`Yes! You spelled ${c.word.toLowerCase()}! ${pick(["Woohoo!","Amazing job!","You are so smart!","You're a superstar!"])}`);
 }
 function nextColor(){
@@ -294,6 +295,21 @@ function confetti(){
   }
 }
 
+/* ---------- Sound effects + background music ---------- */
+const SFX={correct:'sounds/piece_snap.wav', win:'sounds/victory.wav'};
+const sfxCache={};
+function sfx(name){ if(muted) return; const src=SFX[name]; if(!src) return; try{ let a=sfxCache[name]; if(!a){ a=sfxCache[name]=new Audio(src); a.volume=0.45; } a.currentTime=0; a.play().catch(()=>{}); }catch(e){} }
+const MUSIC=['sounds/music_1.mp3','sounds/music_2.mp3','sounds/music_3.mp3'];
+let musicAudio=null, musicIdx=-1, musicArmed=false;
+try{ const m=parseInt(localStorage.getItem('kg_music'),10); if(!isNaN(m)&&m>=-1&&m<MUSIC.length) musicIdx=m; }catch(e){}
+function applyMusic(){ if(musicAudio){ try{musicAudio.pause();}catch(e){} musicAudio=null; } if(musicIdx<0||muted) return; musicAudio=new Audio(MUSIC[musicIdx]); musicAudio.loop=true; musicAudio.volume=0.16; musicAudio.play().catch(()=>{}); }
+function updateMusicBtn(){ const b=$("musicBtn"); if(!b) return; b.textContent=musicIdx<0?"🎵":"🎶"; b.style.opacity=musicIdx<0?"0.55":"1"; }
+function cycleMusic(){ musicArmed=true; musicIdx=(musicIdx+1>=MUSIC.length)?-1:musicIdx+1; try{localStorage.setItem('kg_music',musicIdx);}catch(e){} updateMusicBtn(); applyMusic(); }
+function armMusic(){ if(musicArmed) return; musicArmed=true; if(musicIdx>=0&&!muted) applyMusic(); }
+document.addEventListener('pointerdown', armMusic, {once:true});
+document.addEventListener('keydown', armMusic, {once:true});
+updateMusicBtn();
+
 /* ---------- Buttons ---------- */
 $("startBtn").onclick=()=>{ let i=0; try{i=parseInt(localStorage.getItem('colorfun_i'),10)||0;}catch(e){} startColor(Math.min(Math.max(i,0),COLORS.length-1), true); };
 $("backBtn").onclick=back;
@@ -301,7 +317,8 @@ $("nextBtn").onclick=nextColor;
 $("againBtn").onclick=()=>startColor(0);
 $("homeBtn").onclick=()=>{ try{speechSynthesis.cancel();}catch(e){} window.location.href="index.html"; };
 $("repeatBtn").onclick=()=>{ if(screen!=="q") return; const w=COLORS[cur.i].word.toLowerCase(); if(spellReady) say(`It's ${w}. Let's spell ${w}!`,{then:()=>spellOutHint(COLORS[cur.i].word)}); else say("Can you guess what color this is?"); };
-$("muteBtn").onclick=()=>{ muted=!muted; if(muted)speechSynthesis.cancel(); $("muteBtn").textContent=muted?"🔇":"🔊"; };
+$("muteBtn").onclick=()=>{ muted=!muted; if(muted){ try{speechSynthesis.cancel();}catch(e){} if(musicAudio)musicAudio.pause(); } else { applyMusic(); } $("muteBtn").textContent=muted?"🔇":"🔊"; };
+$("musicBtn").onclick=cycleMusic;
 $("voiceSel").onchange=e=>{ const v=allVoices.find(x=>x.voiceURI===e.target.value); if(v){ voice=v; try{localStorage.setItem("spellit_voice",v.voiceURI);}catch(err){} cheer("Hi! Let's learn some colors!"); } };
 $("testVoice").onclick=()=>cheer("Woohoo! Let's learn our colors! You can do it!");
 
