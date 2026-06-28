@@ -261,7 +261,9 @@ function say(text,{rate=0.95,pitch=1.2,then=null}={}){
 }
 const cheer=(t)=>say(t,{rate:1.0,pitch:1.45});   // brighter, more excited tone for praise
 const LETTERNAME={A:"ay",B:"bee",C:"see",D:"dee",E:"ee",F:"eff",G:"jee",H:"aitch",I:"eye",J:"jay",K:"kay",L:"el",M:"em",N:"en",O:"oh",P:"pee",Q:"cue",R:"ar",S:"ess",T:"tee",U:"you",V:"vee",W:"double-you",X:"ex",Y:"why",Z:"zee"};
-const sayLetter=(ch)=>say(LETTERNAME[ch]||ch,{rate:0.8,pitch:1.2});
+/* Google voices say the plain letter correctly ("A"->"ay"); others need phonetic to avoid iOS "Capital A". */
+function letterSpoken(ch){ ch=(ch||'').toUpperCase(); return (voice&&/google/i.test(voice.name)) ? ch : (LETTERNAME[ch]||ch); }
+const sayLetter=(ch)=>say(letterSpoken(ch),{rate:0.8,pitch:1.2});
 
 /* ---------- DOM ---------- */
 const $=id=>document.getElementById(id);
@@ -286,7 +288,7 @@ function goLetter(){
   $("megaLetter").textContent=ch;
   $("letterPrompt").innerHTML=`Press the <b>${ch}</b> key! 👇`;
   $("letterAsk").textContent="What letter is this?";
-  say(`What letter is this? Can you press ${LETTERNAME[ch]||ch}?`);
+  say(`What letter is this? Can you press ${letterSpoken(ch)}?`);
 }
 
 function goSpell(){
@@ -407,7 +409,7 @@ $("againBtn").onclick=()=>{ li=0;wi=0; saveSpot(); backStack=[]; content=null; g
 $("homeBtn").onclick=()=>{ try{speechSynthesis.cancel();}catch(e){} window.location.href="index.html"; };
 $("backBtn").onclick=back;
 $("repeatBtn").onclick=()=>{
-  if(screen==="letter") say(`What letter is this? Can you press ${LETTERNAME[DATA[li][0]]||DATA[li][0]}?`);
+  if(screen==="letter") say(`What letter is this? Can you press ${letterSpoken(DATA[li][0])}?`);
   else if(screen==="spell"){ const w=DATA[li][1][wi][0].toLowerCase(); if(spellReady) say(`It's ${w}. Let's spell ${w}!`,{then:()=>spellOutHint(DATA[li][1][wi][0])}); else say("Can you guess what this is?"); }
   else if(screen==="win") say(`You spelled ${DATA[li][1][wi][0].toLowerCase()}!`);
 };

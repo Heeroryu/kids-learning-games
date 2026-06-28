@@ -199,7 +199,8 @@ function say(text,{rate=0.95,pitch=1.2,then=null}={}){
 }
 const cheer=(t)=>say(t,{rate:1.0,pitch:1.45});
 const LETTERNAME={A:"ay",B:"bee",C:"see",D:"dee",E:"ee",F:"eff",G:"jee",H:"aitch",I:"eye",J:"jay",K:"kay",L:"el",M:"em",N:"en",O:"oh",P:"pee",Q:"cue",R:"ar",S:"ess",T:"tee",U:"you",V:"vee",W:"double-you",X:"ex",Y:"why",Z:"zee"};
-const sayLetterName=ch=>say(LETTERNAME[ch]||ch,{rate:0.8,pitch:1.2});
+function letterSpoken(ch){ ch=(ch||'').toUpperCase(); return (voice&&/google/i.test(voice.name)) ? ch : (LETTERNAME[ch]||ch); }
+const sayLetterName=ch=>say(letterSpoken(ch),{rate:0.8,pitch:1.2});
 const cap=w=>w[0]+w.slice(1).toLowerCase();
 
 /* ---------- DOM ---------- */
