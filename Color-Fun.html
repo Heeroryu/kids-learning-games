@@ -225,7 +225,7 @@ function renderColor(){
   $("swatch").style.background=c.hex;
   $("tiles").innerHTML="";                                       // hide letters during the guess
   $("qAsk").innerHTML=`Can you guess what color this is? 🤔`;    // Part 1: guess the color
-  say("Can you guess what color this is?",{then:()=>{ if(screen==="q") setTimeout(()=>revealColor(), 3000); }});
+  say("Can you guess what color this is?",{then:()=>{ if(screen==="q") setTimeout(()=>revealColor(), 1000); }});
 }
 function revealColor(){
   if(screen!=="q") return;

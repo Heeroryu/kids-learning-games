@@ -294,7 +294,7 @@ function goSpell(){
   $("tiles").innerHTML="";                                  // hide letters during the guess
   $("spellAsk").innerHTML=`Can you guess what this is? 🤔`; // Part 1: guess the object
   saveSpot();
-  say("Can you guess what this is?",{then:()=>{ if(screen==="spell") setTimeout(()=>revealSpell(), 3000); }});
+  say("Can you guess what this is?",{then:()=>{ if(screen==="spell") setTimeout(()=>revealSpell(), 1000); }});
 }
 function revealSpell(){
   if(screen!=="spell") return;
