@@ -305,7 +305,8 @@ function revealSpell(){
   [...word].forEach((c,i)=>{
     const d=document.createElement("div");
     d.className="tile"+(i===0?" next":"");
-    d.textContent=c; d.dataset.ch=c;
+    d.textContent=c; d.dataset.ch=c; d.style.cursor="pointer";
+    d.onclick=()=>typeLetter(d.textContent);          // tap the glowing tile to type it
     t.appendChild(d);
   });
   spellReady=true;
@@ -335,34 +336,35 @@ function advance(){
   } else { goSpell(); setContent("spell"); }
 }
 
-/* ---------- Input ---------- */
+/* ---------- Input (keyboard + tap both work) ---------- */
+function pressLetter(key){               // letter-recognition input
+  if(screen!=="letter") return;
+  if(key===DATA[li][0]){ sayLetter(key); flashGood($("megaLetter")); setTimeout(()=>{ pushForward(); goSpell(); setContent("spell"); },500); }
+  else { shake($("megaLetter")); }
+}
+function typeLetter(key){                 // spelling input
+  if(screen!=="spell" || !spellReady) return;
+  const word=DATA[li][1][wi][0];
+  const tiles=$("tiles").children;
+  if(typed>=word.length) return;
+  if(key===word[typed]){
+    const tile=tiles[typed];
+    tile.classList.remove("next"); tile.classList.add("done","justhit");
+    sayLetter(key); typed++;
+    if(typed<word.length){ tiles[typed].classList.add("next"); }
+    else { setTimeout(goWin,450); }
+  } else { if(tiles[typed]) shake(tiles[typed]); }
+}
 document.addEventListener("keydown",e=>{
   const k=e.key;
-  if(k===" "||k==="Enter"){ // friendly "continue" on win screen
-    if(screen==="win"){ e.preventDefault(); advance(); }
-    return;
-  }
+  if(k===" "||k==="Enter"){ if(screen==="win"){ e.preventDefault(); advance(); } return; }
   if(!/^[a-zA-Z]$/.test(k)) return;
   const key=k.toUpperCase();
-  if(screen==="letter"){
-    if(key===DATA[li][0]){ sayLetter(key); flashGood($("megaLetter")); setTimeout(()=>{ pushForward(); goSpell(); setContent("spell"); },500); }
-    else { shake($("megaLetter")); }
-  } else if(screen==="spell"){
-    if(!spellReady) return;                 // ignore keys during the "guess" intro
-    const word=DATA[li][1][wi][0];
-    const tiles=$("tiles").children;
-    if(key===word[typed]){
-      const tile=tiles[typed];
-      tile.classList.remove("next"); tile.classList.add("done","justhit");
-      sayLetter(key);
-      typed++;
-      if(typed<word.length){ tiles[typed].classList.add("next"); }
-      else { setTimeout(goWin,450); }
-    } else {
-      if(tiles[typed]) shake(tiles[typed]);
-    }
-  }
+  if(screen==="letter") pressLetter(key);
+  else if(screen==="spell") typeLetter(key);
 });
+$("megaLetter").style.cursor="pointer";
+$("megaLetter").onclick=()=>pressLetter(DATA[li][0]);   // tap the big letter = press it
 
 /* ---------- Helpers ---------- */
 function cap(w){return w[0]+w.slice(1).toLowerCase();}

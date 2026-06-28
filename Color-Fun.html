@@ -210,7 +210,7 @@ function updateProgress(){ $("progressFill").style.width=(100*cur.i/COLORS.lengt
 /* ---------- Flow ---------- */
 function buildTiles(word){
   const t=$("tiles"); t.innerHTML=""; typed=0;
-  [...word].forEach((c,i)=>{ const d=document.createElement("div"); d.className="tile"+(i===0?" next":""); d.textContent=c; t.appendChild(d); });
+  [...word].forEach((c,i)=>{ const d=document.createElement("div"); d.className="tile"+(i===0?" next":""); d.textContent=c; d.style.cursor="pointer"; d.onclick=()=>handleLetter(d.textContent); t.appendChild(d); });
 }
 function startColor(i, jump){
   cur={i, word:COLORS[i].word};

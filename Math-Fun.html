@@ -247,7 +247,7 @@ const sayLetterName=ch=>say(LETTERNAME[ch]||ch,{rate:0.8,pitch:1.2});
 const cap=w=>w[0]+w.slice(1).toLowerCase();
 function buildTiles(word){
   const t=$("tiles"); t.innerHTML=""; typed=0;
-  [...word].forEach((c,i)=>{ const d=document.createElement("div"); d.className="tile"+(i===0?" next":""); d.textContent=c; t.appendChild(d); });
+  [...word].forEach((c,i)=>{ const d=document.createElement("div"); d.className="tile"+(i===0?" next":""); d.textContent=c; d.style.cursor="pointer"; d.onclick=()=>handleLetter(d.textContent); t.appendChild(d); });
 }
 function handleLetter(letter){
   countToken++;   // stop any spell-out hint

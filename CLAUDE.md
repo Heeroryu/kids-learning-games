@@ -11,9 +11,13 @@ double-click (works offline) **and** is hosted on GitHub Pages.
 - `Color-Fun.html` — 10 colors: see the swatch → spell the color word.
 
 ## Audience & hard constraints
-- **Keyboard-only on a computer.** No touch/tablet support required. Don't add on-screen letter
-  buttons for the spelling/word steps (the glowing tile shows which key to press). The math/color
-  picker tiles are clickable, which is harmless.
+- **Works on keyboard AND touch** (computer or iPad). The **glowing target is tappable** = same as
+  pressing the key: in Spell-It tap the big letter / the glowing tile; in Math/Color tap the glowing
+  number-row button / the glowing tile. Keep this dual input in every game (refactor input into a
+  `pressX()`/`typeLetter()`/`handleLetter()` fn that both `keydown` and `onclick` call).
+- **Mobile/iPad layout:** body height uses `100vh; height:100dvh;` (dvh = correct visible height on
+  iOS so nothing is hidden behind the toolbar). Screens are scroll-safe (`overflow-y:auto` +
+  `justify-content:safe center`) with fluid `clamp(..,vh,..)` spacing → scales to any resolution.
 - **Can't-fail UX:** the next correct input **glows orange**; wrong keys just **wiggle** (shake),
   never penalize. This is the core design rule — preserve it in every game.
 - Single-digit math only (**0–9**, one keypress). Going to 10+/teens breaks the single-key model.
