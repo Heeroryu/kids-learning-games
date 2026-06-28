@@ -26,6 +26,10 @@ double-click (works offline) **and** is hosted on GitHub Pages.
   Best voices need **Microsoft Edge** — this is recommended in each game's in-app hint.
 - **Guided typing tiles:** word rendered as tiles, `.next` tile glows, correct fills green & advances,
   wrong shakes. Spell-It and the Math/Color word steps all reuse this mechanic + `spellOutHint()`.
+- **Two-part "guess → spell" intro (Spell-It & Color-Fun):** on each new item, Part 1 shows only the
+  emoji/swatch + "Can you guess what this is?" with tiles hidden and input ignored (`spellReady=false`),
+  then after a ~3s pause `revealSpell()`/`revealColor()` says "Yes! It's X! Let's spell it", shows the
+  tiles, and sets `spellReady=true`. Math-Fun is intentionally left without this (digit is the lesson).
 - **Top bar (every game):** 🏠 home → navigates to `index.html` (the launcher); ⬅️ back → steps back
   one screen through the screens actually viewed (in-app history stack: `backStack`/`content`,
   `pushForward()`; back from a 🎉 win re-shows that item; empty stack → launcher); 🔊 mute; 🔁 repeat.
